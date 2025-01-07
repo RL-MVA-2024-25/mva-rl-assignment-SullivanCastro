@@ -243,4 +243,4 @@ class HIVPatient(gym.Env):
         if self.logscale:
             state2 = np.log10(state2)
 
-        return state2, rew, True, False, {}
+        return state2, rew, False, False, {}

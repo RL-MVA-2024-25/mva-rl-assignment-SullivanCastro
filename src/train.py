@@ -54,7 +54,7 @@ class ProjectAgent:
                       'epsilon_decay_period': 1000,
                       'epsilon_delay_decay': 50,
                       'batch_size': 20,
-                      'path': 'model/dqn.pth'}
+                      'path': 'dqn.pth'}
 
         if model is None:
             state_dim = env.observation_space.shape[0]
@@ -91,13 +91,9 @@ class ProjectAgent:
         self.verbose = config['verbose'] if 'verbose' in config.keys() else True
 
     def load(self):
-        # # save the config
-        # pass
-
-        # # save the model
-        # self.model.load_state_dict(torch.load(self.path))
-        # self.target_model.load_state_dict(self.model.state_dict())
-        pass
+        # save the model
+        self.model.load_state_dict(torch.load(self.path))
+        self.target_model.load_state_dict(self.model.state_dict())
 
     def MC_eval(self, env, nb_trials):   # NEW NEW NEW
         MC_total_reward = []
@@ -211,6 +207,9 @@ class ProjectAgent:
                             ", batch size ", '{:4d}'.format(len(self.memory)), 
                             ", ep return ", '{:4.1f}'.format(episode_cum_reward), 
                             sep='')
+                        
+                state, _ = env.reset()
+                episode_cum_reward = 0
 
             else:
                 state = next_state
@@ -251,5 +250,5 @@ if __name__ == "__main__":
                             nn.Linear(nb_neurons, n_action)).to(device)
     
     model = ProjectAgent(config, DQN)
-    model.train(env, 200, False)
+    model.train(env, 200, True)
 
