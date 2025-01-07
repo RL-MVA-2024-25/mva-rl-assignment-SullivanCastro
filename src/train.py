@@ -42,6 +42,8 @@ def greedy_action(network, state):
 
 class ProjectAgent:
     def __init__(self, config=None, model=None):
+        self.device = "cuda" if next(model.parameters()).is_cuda else "cpu"
+
         if config is None:
             config = {'nb_actions':env.action_space.n,
                       'learning_rate': 0.0001,
@@ -55,7 +57,6 @@ class ProjectAgent:
                       'path': 'model/dqn.pth'}
 
         if model is None:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             state_dim = env.observation_space.shape[0]
             n_action = env.action_space.n 
             nb_neurons=24
@@ -63,21 +64,21 @@ class ProjectAgent:
                                     nn.ReLU(),
                                     nn.Linear(nb_neurons, nb_neurons),
                                     nn.ReLU(), 
-                                    nn.Linear(nb_neurons, n_action)).to(device)
+                                    nn.Linear(nb_neurons, n_action)).to(self.device)
 
-        device = "cuda" if next(model.parameters()).is_cuda else "cpu"
+        
         self.nb_actions = config['nb_actions']
         self.gamma = config['gamma'] if 'gamma' in config.keys() else 0.95
         self.batch_size = config['batch_size'] if 'batch_size' in config.keys() else 100
         buffer_size = config['buffer_size'] if 'buffer_size' in config.keys() else int(1e5)
-        self.memory = ReplayBuffer(buffer_size,device)
+        self.memory = ReplayBuffer(buffer_size,self.device)
         self.epsilon_max = config['epsilon_max'] if 'epsilon_max' in config.keys() else 1.
         self.epsilon_min = config['epsilon_min'] if 'epsilon_min' in config.keys() else 0.01
         self.epsilon_stop = config['epsilon_decay_period'] if 'epsilon_decay_period' in config.keys() else 1000
         self.epsilon_delay = config['epsilon_delay_decay'] if 'epsilon_delay_decay' in config.keys() else 20
         self.epsilon_step = (self.epsilon_max-self.epsilon_min)/self.epsilon_stop
         self.model = model 
-        self.target_model = deepcopy(self.model).to(device)
+        self.target_model = deepcopy(self.model).to(self.device)
         self.criterion = config['criterion'] if 'criterion' in config.keys() else torch.nn.MSELoss()
         lr = config['learning_rate'] if 'learning_rate' in config.keys() else 0.001
         self.optimizer = config['optimizer'] if 'optimizer' in config.keys() else torch.optim.Adam(self.model.parameters(), lr=lr)
@@ -85,8 +86,9 @@ class ProjectAgent:
         self.update_target_strategy = config['update_target_strategy'] if 'update_target_strategy' in config.keys() else 'replace'
         self.update_target_freq = config['update_target_freq'] if 'update_target_freq' in config.keys() else 20
         self.update_target_tau = config['update_target_tau'] if 'update_target_tau' in config.keys() else 0.005
-        self.monitoring_nb_trials = config['monitoring_nb_trials'] if 'monitoring_nb_trials' in config.keys() else 0
+        self.monitoring_nb_trials = config['monitoring_nb_trials'] if 'monitoring_nb_trials' in config.keys() else 1
         self.path = config['path'] if 'path' in config.keys() else 'model/base_model.pth'
+        self.verbose = config['verbose'] if 'verbose' in config.keys() else True
 
     def load(self):
         self.model.load_state_dict(torch.load(self.path))
@@ -113,7 +115,7 @@ class ProjectAgent:
             MC_discounted_reward.append(discounted_reward)
         return np.mean(MC_discounted_reward), np.mean(MC_total_reward)
     
-    def V_initial_state(self, env, nb_trials):   # NEW NEW NEW
+    def V_initial_state(self, env, nb_trials, device):   # NEW NEW NEW
         with torch.no_grad():
             for _ in range(nb_trials):
                 val = []
@@ -182,30 +184,29 @@ class ProjectAgent:
                 # Monitoring
                 if self.monitoring_nb_trials>0:
                     MC_dr, MC_tr = self.MC_eval(env, self.monitoring_nb_trials)    # NEW NEW NEW
-                    V0 = self.V_initial_state(env, self.monitoring_nb_trials)   # NEW NEW NEW
+                    V0 = self.V_initial_state(env, self.monitoring_nb_trials, self.device)   # NEW NEW NEW
                     MC_avg_total_reward.append(MC_tr)   # NEW NEW NEW
                     MC_avg_discounted_reward.append(MC_dr)   # NEW NEW NEW
                     V_init_state.append(V0)   # NEW NEW NEW
                     episode_return.append(episode_cum_reward)   # NEW NEW NEW
-                    print("Episode ", '{:2d}'.format(episode), 
-                          ", epsilon ", '{:6.2f}'.format(epsilon), 
-                          ", batch size ", '{:4d}'.format(len(self.memory)), 
-                          ", ep return ", '{:4.1f}'.format(episode_cum_reward), 
-                          ", MC tot ", '{:6.2f}'.format(MC_tr),
-                          ", MC disc ", '{:6.2f}'.format(MC_dr),
-                          ", V0 ", '{:6.2f}'.format(V0),
-                          sep='')
+                    if self.verbose:
+                        print("Episode ", '{:2d}'.format(episode), 
+                            ", epsilon ", '{:6.2f}'.format(epsilon), 
+                            ", batch size ", '{:4d}'.format(len(self.memory)), 
+                            ", ep return ", '{:4.1f}'.format(episode_cum_reward), 
+                            ", MC tot ", '{:6.2f}'.format(MC_tr),
+                            ", MC disc ", '{:6.2f}'.format(MC_dr),
+                            ", V0 ", '{:6.2f}'.format(V0),
+                            sep='')
                 else:
                     episode_return.append(episode_cum_reward)
-                    print("Episode ", '{:2d}'.format(episode), 
-                          ", epsilon ", '{:6.2f}'.format(epsilon), 
-                          ", batch size ", '{:4d}'.format(len(self.memory)), 
-                          ", ep return ", '{:4.1f}'.format(episode_cum_reward), 
-                          sep='')
+                    if self.verbose:
+                        print("Episode ", '{:2d}'.format(episode), 
+                            ", epsilon ", '{:6.2f}'.format(epsilon), 
+                            ", batch size ", '{:4d}'.format(len(self.memory)), 
+                            ", ep return ", '{:4.1f}'.format(episode_cum_reward), 
+                            sep='')
 
-                
-                state, _ = env.reset()
-                episode_cum_reward = 0
             else:
                 state = next_state
 
@@ -245,5 +246,5 @@ if __name__ == "__main__":
                             nn.Linear(nb_neurons, n_action)).to(device)
     
     model = ProjectAgent(config, DQN)
-    model.train(env, 200, True)
+    model.train(env, 200, False)
 
