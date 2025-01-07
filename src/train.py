@@ -45,21 +45,33 @@ class ProjectAgent:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
         if config is None:
+            # config = {'nb_actions':env.action_space.n,
+            #           'learning_rate': 0.0001,
+            #           'gamma': 0.95,
+            #           'buffer_size': 1000000,
+            #           'epsilon_min': 0.01,
+            #           'epsilon_max': 1.,
+            #           'epsilon_decay_period': 1000,
+            #           'epsilon_delay_decay': 50,
+            #           'batch_size': 20,
+            #           'path': 'src/dqn.pth'}
+
             config = {'nb_actions':env.action_space.n,
-                      'learning_rate': 0.0001,
-                      'gamma': 0.95,
-                      'buffer_size': 1000000,
-                      'epsilon_min': 0.01,
-                      'epsilon_max': 1.,
-                      'epsilon_decay_period': 1000,
-                      'epsilon_delay_decay': 50,
+                      'learning_rate': 4.62716966761542e-05,
+                      'gamma': 0.9695926865101554,
+                      'buffer_size': 680735,
+                      'epsilon_min': 0.04643489819360004,
+                      'epsilon_max': 0.26764538646700875,
+                      'epsilon_decay_period': 173,
+                      'epsilon_delay_decay': 17,
                       'batch_size': 20,
+                      'nb_gradient_steps': 8,
                       'path': 'src/dqn.pth'}
 
         if model is None:
             state_dim = env.observation_space.shape[0]
             n_action = env.action_space.n 
-            nb_neurons=24
+            nb_neurons=95
             model = torch.nn.Sequential(nn.Linear(state_dim, nb_neurons),
                                     nn.ReLU(),
                                     nn.Linear(nb_neurons, nb_neurons),
@@ -229,20 +241,21 @@ if __name__ == "__main__":
     )  # The time wrapper limits the number of steps in an episode at 200.
 
     config = {'nb_actions':env.action_space.n,
-          'learning_rate': 0.0001,
-          'gamma': 0.95,
-          'buffer_size': 1000000,
-          'epsilon_min': 0.01,
-          'epsilon_max': 1.,
-          'epsilon_decay_period': 1000,
-          'epsilon_delay_decay': 50,
-          'batch_size': 20,
-          'path': 'model/dqn.pth',}
+                      'learning_rate': 4.62716966761542e-05,
+                      'gamma': 0.9695926865101554,
+                      'buffer_size': 680735,
+                      'epsilon_min': 0.04643489819360004,
+                      'epsilon_max': 0.26764538646700875,
+                      'epsilon_decay_period': 173,
+                      'epsilon_delay_decay': 17,
+                      'batch_size': 20,
+                      'nb_gradient_steps': 8,
+                      'path': 'src/dqn.pth'}
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     state_dim = env.observation_space.shape[0]
     n_action = env.action_space.n 
-    nb_neurons=24
+    nb_neurons=95
     DQN = torch.nn.Sequential(nn.Linear(state_dim, nb_neurons),
                             nn.ReLU(),
                             nn.Linear(nb_neurons, nb_neurons),

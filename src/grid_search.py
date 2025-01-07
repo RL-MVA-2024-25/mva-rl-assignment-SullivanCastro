@@ -31,10 +31,10 @@ config = {'nb_actions':env.action_space.n,
 
 def objective(trial):
     from gymnasium.wrappers import TimeLimit
-    from env_hiv import HIVPatient
+    from fast_env import FastHIVPatient 
 
     env = TimeLimit(
-        env=HIVPatient(domain_randomization=False), max_episode_steps=200
+        env=FastHIVPatient(domain_randomization=False), max_episode_steps=200
     ) 
 
     learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True)
@@ -77,7 +77,7 @@ def objective(trial):
 
 if __name__ == "__main__":
     study = optuna.create_study(direction="maximize")
-    study.optimize(objective, n_trials=100)
+    study.optimize(objective, n_trials=500)
     print(study.best_params)
     print(study.best_value)
     print(study.best_trial)
