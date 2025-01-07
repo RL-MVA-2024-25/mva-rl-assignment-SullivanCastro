@@ -104,6 +104,10 @@ class ProjectAgent:
 
     def load(self):
         # save the model
+        import os
+        if not os.path.exists(self.path):
+            self.path = os.path.join(os.getcwd(), self.path)
+        print("Loading model from ", self.path)
         self.model.load_state_dict(torch.load(self.path))
         self.target_model.load_state_dict(self.model.state_dict())
 
@@ -163,6 +167,7 @@ class ProjectAgent:
         state, _ = env.reset()
         epsilon = self.epsilon_max
         step = 0
+        best_episode_cum_reward = -np.inf
         while episode < max_episode:
             # update epsilon
             if step > self.epsilon_delay:
@@ -192,6 +197,13 @@ class ProjectAgent:
                 self.target_model.load_state_dict(target_state_dict)
             # next transition
             step += 1
+
+            # Save the best model
+            if episode_cum_reward > best_episode_cum_reward:
+                best_episode_cum_reward = episode_cum_reward
+                if save:
+                    self.save()
+
             if done or trunc:
                 episode += 1
                 # Monitoring
@@ -225,9 +237,6 @@ class ProjectAgent:
 
             else:
                 state = next_state
-
-        if save:
-            self.save()
 
         return episode_return, MC_avg_discounted_reward, MC_avg_total_reward, V_init_state
     
