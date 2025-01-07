@@ -54,7 +54,7 @@ class ProjectAgent:
                       'epsilon_decay_period': 1000,
                       'epsilon_delay_decay': 50,
                       'batch_size': 20,
-                      'path': 'dqn.pth'}
+                      'path': 'src/dqn.pth'}
 
         if model is None:
             state_dim = env.observation_space.shape[0]
