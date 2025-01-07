@@ -42,7 +42,7 @@ def greedy_action(network, state):
 
 class ProjectAgent:
     def __init__(self, config=None, model=None):
-        self.device = "cuda" if next(model.parameters()).is_cuda else "cpu"
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
         if config is None:
             config = {'nb_actions':env.action_space.n,
