@@ -1,21 +1,9 @@
-from gymnasium.wrappers import TimeLimit
-from env_hiv import HIVPatient
-
 import numpy as np
 import random
 import torch
 import torch.nn as nn
 from copy import deepcopy
 
-env = TimeLimit(
-    env=HIVPatient(domain_randomization=False), max_episode_steps=200
-)  # The time wrapper limits the number of steps in an episode at 200.
-# Now is the floor is yours to implement the agent and train it.
-
-
-# You have to implement your own agent.
-# Don't modify the methods names and signatures, but you can add methods.
-# ENJOY!
 class ReplayBuffer:
     def __init__(self, capacity, device):
         self.capacity = int(capacity) # capacity of the buffer
@@ -39,32 +27,8 @@ def greedy_action(network, state):
         Q = network(torch.Tensor(state).unsqueeze(0).to(device))
         return torch.argmax(Q).item()
 
-
-class ProjectAgent:
-    def __init__(self, config=None, model=None):
-        if config is None:
-            config = {'nb_actions':env.action_space.n,
-                      'learning_rate': 0.0001,
-                      'gamma': 0.95,
-                      'buffer_size': 1000000,
-                      'epsilon_min': 0.01,
-                      'epsilon_max': 1.,
-                      'epsilon_decay_period': 1000,
-                      'epsilon_delay_decay': 50,
-                      'batch_size': 20,
-                      'path': 'model/dqn.pth'}
-
-        if model is None:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            state_dim = env.observation_space.shape[0]
-            n_action = env.action_space.n 
-            nb_neurons=24
-            model = torch.nn.Sequential(nn.Linear(state_dim, nb_neurons),
-                                    nn.ReLU(),
-                                    nn.Linear(nb_neurons, nb_neurons),
-                                    nn.ReLU(), 
-                                    nn.Linear(nb_neurons, n_action)).to(device)
-
+class dqn_agent:
+    def __init__(self, config, model):
         device = "cuda" if next(model.parameters()).is_cuda else "cpu"
         self.nb_actions = config['nb_actions']
         self.gamma = config['gamma'] if 'gamma' in config.keys() else 0.95
@@ -87,10 +51,6 @@ class ProjectAgent:
         self.update_target_tau = config['update_target_tau'] if 'update_target_tau' in config.keys() else 0.005
         self.monitoring_nb_trials = config['monitoring_nb_trials'] if 'monitoring_nb_trials' in config.keys() else 0
         self.path = config['path'] if 'path' in config.keys() else 'model/base_model.pth'
-
-    def load(self):
-        self.model.load_state_dict(torch.load(self.path))
-        self.target_model.load_state_dict(self.model.state_dict())
 
     def MC_eval(self, env, nb_trials):   # NEW NEW NEW
         MC_total_reward = []
@@ -132,11 +92,8 @@ class ProjectAgent:
             loss.backward()
             self.optimizer.step() 
 
-    def save(self):
+    def _save(self):
         torch.save(self.model.state_dict(), self.path)
-
-    def act(self, state):
-        return greedy_action(self.model, state)
     
     def train(self, env, max_episode, save=False):
         episode_return = []
@@ -156,7 +113,7 @@ class ProjectAgent:
             if np.random.rand() < epsilon:
                 action = env.action_space.sample()
             else:
-                action = self.act(state)
+                action = greedy_action(self.model, state)
             # step
             next_state, reward, done, trunc, _ = env.step(action)
             self.memory.append(state, action, reward, next_state, done)
@@ -210,7 +167,7 @@ class ProjectAgent:
                 state = next_state
 
         if save:
-            self.save()
+            self._save()
 
         return episode_return, MC_avg_discounted_reward, MC_avg_total_reward, V_init_state
     
@@ -224,13 +181,13 @@ if __name__ == "__main__":
     )  # The time wrapper limits the number of steps in an episode at 200.
 
     config = {'nb_actions':env.action_space.n,
-          'learning_rate': 0.0001,
+          'learning_rate': 0.001,
           'gamma': 0.95,
           'buffer_size': 1000000,
           'epsilon_min': 0.01,
           'epsilon_max': 1.,
           'epsilon_decay_period': 1000,
-          'epsilon_delay_decay': 50,
+          'epsilon_delay_decay': 20,
           'batch_size': 20,
           'path': 'model/dqn.pth',}
 
@@ -244,6 +201,6 @@ if __name__ == "__main__":
                             nn.ReLU(), 
                             nn.Linear(nb_neurons, n_action)).to(device)
     
-    model = ProjectAgent(config, DQN)
+    model = dqn_agent(config, DQN)
     model.train(env, 200, True)
 
