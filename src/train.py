@@ -91,8 +91,13 @@ class ProjectAgent:
         self.verbose = config['verbose'] if 'verbose' in config.keys() else True
 
     def load(self):
-        self.model.load_state_dict(torch.load(self.path))
-        self.target_model.load_state_dict(self.model.state_dict())
+        # # save the config
+        # pass
+
+        # # save the model
+        # self.model.load_state_dict(torch.load(self.path))
+        # self.target_model.load_state_dict(self.model.state_dict())
+        pass
 
     def MC_eval(self, env, nb_trials):   # NEW NEW NEW
         MC_total_reward = []
