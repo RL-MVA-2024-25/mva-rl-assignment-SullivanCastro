@@ -3,7 +3,8 @@ from functools import partial
 import gymnasium as gym
 from gymnasium.wrappers import TimeLimit
 
-from env_hiv import HIVPatient
+# from env_hiv import HIVPatient
+from fast_env import FastHIVPatient as HIVPatient
 from interface import Agent
 
 

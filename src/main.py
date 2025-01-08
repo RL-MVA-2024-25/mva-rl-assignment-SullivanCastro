@@ -24,7 +24,7 @@ if __name__ == "__main__":
     if not file.is_file():
         seed_everything(seed=42)
         # Initialization of the agent. Replace DummyAgent with your custom agent implementation.
-        agent = ProjectAgent()
+        agent = ProjectAgent(model_path="model/base_model.pth")
         agent.load()
         # Evaluate agent and write score.
         score_agent: float = evaluate_HIV(agent=agent, nb_episode=5)

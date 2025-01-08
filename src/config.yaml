@@ -1,0 +1,21 @@
+exp: "dqn.pth"
+
+gamma: 0.98 # Discount factor for future rewards
+batch_size: 1000  # Size of the batch for training
+buffer_size: 10000000  # Size of the replay buffer
+epsilon_max: 1.0  # Maximum value of epsilon for exploration
+epsilon_min: 0.02  # Minimum value of epsilon for exploration
+epsilon_decay_period: 30000  # Number of steps for epsilon to decay
+epsilon_delay_decay: 100  # Delay before epsilon decay starts
+learning_rate: 4.0e-3  # Learning rate for the optimizer
+gradient_steps: 3  # Number of gradient steps per update
+update_target_strategy: None  # Strategy to update target network ('replace' or 'soft update')
+update_target_freq: 400  # Frequency of target network updates (if 'replace' strategy)
+update_target_tau: 0.005  # Soft update coefficient (if 'soft update' strategy)
+monitoring_nb_trials: 1  # Number of trials for monitoring performance
+nb_neurons: 512 # Number of neurons in the hidden layer
+path: model/base_model.pth  # Path to save the model
+is_updating: true # Whether to update the best model
+verbose: true  # Verbosity of the logging
+
+
