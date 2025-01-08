@@ -91,15 +91,13 @@ class ProjectAgent:
         n_action = env.action_space.n 
         nb_neurons=config['nb_neurons'] if 'nb_neurons' in config.keys() else 64
         self.model = torch.nn.Sequential(
-            nn.Linear(state_dim, nb_neurons//2),
+            nn.Linear(state_dim, nb_neurons),
             nn.ReLU(),
-            nn.Linear(nb_neurons//2, nb_neurons//4),
+            nn.Linear(nb_neurons, nb_neurons),
             nn.ReLU(),
-            nn.Linear(nb_neurons//4, nb_neurons//4),
+            nn.Linear(nb_neurons, nb_neurons),
             nn.ReLU(),
-            nn.Linear(nb_neurons//4, nb_neurons//2),
-            nn.ReLU(),
-            nn.Linear(nb_neurons//2, nb_neurons),
+            nn.Linear(nb_neurons, nb_neurons),
             nn.ReLU(),
             nn.Linear(nb_neurons, n_action)
             ).to(self.device)
@@ -215,7 +213,7 @@ class ProjectAgent:
             else:
                 state = next_state
 
-        self.save()
+        self.save(final=True)
         return episode_return, MC_avg_discounted_reward, MC_avg_total_reward, V_init_state, previous_best
     
 
