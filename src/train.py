@@ -52,9 +52,13 @@ class ProjectAgent:
         print("Loading model from ", self.path)
         self.model.load_state_dict(torch.load(self.path))
 
-    def save(self):
-        print("Saving best model to ", self.path)
-        torch.save(self.best_model.state_dict(), self.path)
+    def save(self, final=False):
+        if final:
+            print("Saving final model to ", self.path.replace(".pth", "_final.pth"))
+            torch.save(self.model.state_dict(), self.path.replace(".pth", "_final.pth"))
+        else:
+            print("Saving best model to ", self.path)
+            torch.save(self.best_model.state_dict(), self.path)
 
     def act(self, state):
         return greedy_action(self.best_model, state)
@@ -92,6 +96,8 @@ class ProjectAgent:
         nb_neurons=config['nb_neurons'] if 'nb_neurons' in config.keys() else 64
         self.model = torch.nn.Sequential(
             nn.Linear(state_dim, nb_neurons),
+            nn.ReLU(),
+            nn.Linear(nb_neurons, nb_neurons),
             nn.ReLU(),
             nn.Linear(nb_neurons, nb_neurons),
             nn.ReLU(),
