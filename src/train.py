@@ -105,7 +105,7 @@ class ProjectAgent:
             nn.ReLU(),
             nn.Linear(nb_neurons, nb_neurons),
             nn.ReLU(),
-            nn.Linear(nb_neurons, n_action)
+            nn.Linear(nb_neurons, n_action) # 5 layers
             ).to(self.device)
         if model_path is not None:
             self.path = model_path
