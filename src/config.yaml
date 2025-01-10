@@ -13,7 +13,7 @@ update_target_strategy: replace  # Strategy to update target network ('replace' 
 update_target_freq: 500  # Frequency of target network updates (if 'replace' strategy)
 update_target_tau: 0.005  # Soft update coefficient (if 'soft update' strategy)
 monitoring_nb_trials: 1  # Number of trials for monitoring performance
-nb_neurons: 128 # Number of neurons in the hidden layer
+nb_neurons: 256 # Number of neurons in the hidden layer
 path: model/base_model.pth  # Path to save the model
 is_updating: true # Whether to update the best model
 verbose: true  # Verbosity of the logging
